@@ -1,0 +1,33 @@
+[project]
+name = "googleclean"
+description = "Search and delete messages from gmail.com"
+license = {text = "MIT" }
+version = "1.0"
+dependencies = [
+  "google-api-python-client>=2.0",
+  "google-auth-httplib2>=0.1",
+  "google-auth-oauthlib>=1.0"
+]
+requires-python= ">= 3.14"
+readme = "README.md"
+authors = [
+    {name = "Gerard Weatherby"},
+    {email = "gerardw@alum.mit.edu"}
+]
+
+[tool.setuptools]
+package-dir = {"" = "src" }  # Tells setuptools that the root package is in the "src" directory
+
+[tool.setuptools.packages.find]
+where = ["src"]  # Specify the "src" directory to look for packages
+
+
+[project.scripts]
+googleclean = "googleclean.main:main"
+
+[project.optional-dependencies] 
+# test = ['pytest']
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
