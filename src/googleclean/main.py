@@ -8,6 +8,7 @@ Usage examples:
   python gmail_filter_delete.py --subject "Weekly Report" --subject "Status Update"
   python gmail_filter_delete.py --from "noreply@example.com" --from "alerts@foo.com"
   python gmail_filter_delete.py --from "spam@foo.com" --older-than 6m --delete
+  python gmail_filter_delete.py --has-attachment --from "support@example.com"
 """
 
 import argparse
@@ -78,7 +79,7 @@ def delete_messages(service, ids: List[str]):
     for msg_id in ids:
         service.users().messages().delete(userId="me", id=msg_id).execute()
 
-def build_query(subjects: List[str] | None, senders: List[str] | None, newer: str | None, older: str | None) -> str:
+def build_query(subjects: List[str] | None, senders: List[str] | None, newer: str | None, older: str | None, has_attachment: bool) -> str:
     """Combine filters into a Gmail search query."""
     parts = []
 
@@ -95,6 +96,9 @@ def build_query(subjects: List[str] | None, senders: List[str] | None, newer: st
     if older:
         parts.append(f'older_than:{older}')
 
+    if has_attachment:
+        parts.append("has:attachment")
+
     return " ".join(parts)
 
 def main(argv=None):
@@ -104,17 +108,18 @@ def main(argv=None):
     parser.add_argument("--from", dest="senders", action="append", help="Match one or more sender addresses (use multiple --from entries).")
     parser.add_argument("--newer-than", help="Filter messages newer than duration (e.g., 7d, 3m, 1y).")
     parser.add_argument("--older-than", help="Filter messages older than duration (e.g., 7d, 3m, 1y).")
+    parser.add_argument("--has-attachment", action="store_true", help="Filter only messages that contain attachments.")
     parser.add_argument("--delete", action="store_true", help="Delete matching messages after confirmation.")
     parser.add_argument("--account", help="Specify Gmail account to authenticate (login_hint).")
 
     parser.add_argument('-l', '--loglevel', default='WARN', help="Python logging level")
     args = parser.parse_args(argv)
-    googleclean_logger.setLevel(getattr(logging,args.loglevel))
+    googleclean_logger.setLevel(getattr(logging, args.loglevel))
 
     service = get_service(account=args.account)
-    query = build_query(args.subject, args.senders, args.newer_than, args.older_than)
+    query = build_query(args.subject, args.senders, args.newer_than, args.older_than, args.has_attachment)
     if not query:
-        print("Please specify at least one filter: --subject, --from, --newer-than, or --older-than.")
+        print("Please specify at least one filter: --subject, --from, --newer-than, --older-than, or --has-attachment.")
         return
     googleclean_logger.info(f"Filter query is {query}")
 

@@ -24,6 +24,10 @@ where = ["src"]  # Specify the "src" directory to look for packages
 
 [project.scripts]
 googleclean = "googleclean.main:main"
+googleclean-load = "googleclean.loader:main"
+googleclean-query = "googleclean.query:main"
+googleclean-delete = "googleclean.delete:main"
+
 
 [project.optional-dependencies] 
 # test = ['pytest']
