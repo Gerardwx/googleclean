@@ -11,10 +11,12 @@ Usage examples:
 """
 
 import argparse
+import logging
 import os
 import sys
 import webbrowser
 from typing import List
+from googleclean import googleclean_logger
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -85,7 +87,7 @@ def build_query(subjects: List[str] | None, senders: List[str] | None, newer: st
         parts.append(" OR ".join(subject_clauses))
 
     if senders:
-        from_clauses = [f'from:{s}' for s in senders]
+        from_clauses = [f'from:"{s}"' for s in senders]
         parts.append(" OR ".join(from_clauses))
 
     if newer:
@@ -96,6 +98,7 @@ def build_query(subjects: List[str] | None, senders: List[str] | None, newer: st
     return " ".join(parts)
 
 def main(argv=None):
+    logging.basicConfig()
     parser = argparse.ArgumentParser(description="Filter and optionally delete Gmail messages by subject, sender, and/or date.")
     parser.add_argument("--subject", action="append", help="Match one or more subjects (use multiple --subject entries).")
     parser.add_argument("--from", dest="senders", action="append", help="Match one or more sender addresses (use multiple --from entries).")
@@ -103,13 +106,17 @@ def main(argv=None):
     parser.add_argument("--older-than", help="Filter messages older than duration (e.g., 7d, 3m, 1y).")
     parser.add_argument("--delete", action="store_true", help="Delete matching messages after confirmation.")
     parser.add_argument("--account", help="Specify Gmail account to authenticate (login_hint).")
+
+    parser.add_argument('-l', '--loglevel', default='WARN', help="Python logging level")
     args = parser.parse_args(argv)
+    googleclean_logger.setLevel(getattr(logging,args.loglevel))
 
     service = get_service(account=args.account)
     query = build_query(args.subject, args.senders, args.newer_than, args.older_than)
     if not query:
         print("Please specify at least one filter: --subject, --from, --newer-than, or --older-than.")
         return
+    googleclean_logger.info(f"Filter query is {query}")
 
     ids = search_messages(service, query)
     count = len(ids)
