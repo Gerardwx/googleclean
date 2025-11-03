@@ -1,4 +1,3 @@
-# src/googleclean/loader.py
 import argparse
 from googleclean.db import get_connection, init_db
 from googleclean.gmail_api import get_service
@@ -12,8 +11,6 @@ def has_attachments(payload) -> bool:
         if has_attachments(part):
             return True
     return False
-
-
 
 def load_year(service, year: int):
     """Load all Gmail messages for the given year into SQLite."""
@@ -48,13 +45,16 @@ def load_year(service, year: int):
             from_addr = headers.get("From", "")
             to_addr = headers.get("To", "")
             has_attachment = int(has_attachments(msg.get("payload")))
+
             cur.execute(
                 """
                 INSERT OR REPLACE INTO messages
-                (rfc822_id, google_id, to_addr, from_addr, subject, has_attachment)
-                VALUES (?, ?, ?, ?, ?, ?)
+                (google_id, rfc822_id, to_addr, from_addr, subject, has_attachment, is_deleted)
+                VALUES (?, ?, ?, ?, ?, ?, COALESCE(
+                    (SELECT is_deleted FROM messages WHERE google_id = ?), 0
+                ))
                 """,
-                (rfc822_id, msg_id, to_addr, from_addr, subj, has_attachment),
+                (msg_id, rfc822_id, to_addr, from_addr, subj, has_attachment, msg_id),
             )
             total += 1
 

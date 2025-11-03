@@ -24,9 +24,10 @@ where = ["src"]  # Specify the "src" directory to look for packages
 
 [project.scripts]
 googleclean = "googleclean.main:main"
-googleclean-load = "googleclean.loader:main"
-googleclean-query = "googleclean.query:main"
-googleclean-delete = "googleclean.delete:main"
+load = "googleclean.loader:main"
+query = "googleclean.query:main"
+delete = "googleclean.delete:main"
+retain = "googleclean.retain:main"
 
 
 [project.optional-dependencies] 

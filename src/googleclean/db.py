@@ -1,4 +1,3 @@
-# src/googleclean/db.py
 from pathlib import Path
 import sqlite3
 
@@ -13,10 +12,12 @@ def init_db():
     """Create the database schema if not exists."""
     conn = get_connection()
     cur = conn.cursor()
+
+    # Messages table
     cur.execute("""
     CREATE TABLE IF NOT EXISTS messages (
-        rfc822_id TEXT PRIMARY KEY,
-        google_id TEXT,
+        google_id TEXT PRIMARY KEY,
+        rfc822_id TEXT,
         to_addr TEXT,
         from_addr TEXT,
         subject TEXT,
@@ -24,6 +25,17 @@ def init_db():
         is_deleted INTEGER DEFAULT 0
     );
     """)
+
+    # ⚡ Add index to optimize lookups by sender
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_messages_from_addr ON messages(from_addr);")
+
+    # Retain table
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS retain (
+        from_addr TEXT PRIMARY KEY
+    );
+    """)
+
     conn.commit()
     conn.close()
 
