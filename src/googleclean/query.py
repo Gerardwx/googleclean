@@ -1,5 +1,10 @@
 import argparse
 from googleclean.db import get_connection
+import signal
+
+# Prevent BrokenPipeError when piping to tools like head
+signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Show summary of messages by sender.")
